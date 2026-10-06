@@ -1,6 +1,6 @@
 format: tdxn
 version: '2.1'
-build: 3
+build: 4
 generator: Embody/6.2.68
 td_build: 099.2025.32820
 network_path: /project1/series_synth
@@ -169,7 +169,6 @@ custom_pars:
     clampMin: true
     normMax: 280.0
     help: First month of the loop window, counted from the first observation (0 = Jan 2003). The window is played as ONE cycle of the wavetable. With Scan on, the scan offset is added to this.
-    value: 31
   - name: Length
     style: Int
     label: Window Length (months)
@@ -179,7 +178,7 @@ custom_pars:
     normMin: 4.0
     normMax: 300.0
     help: Months in the loop window (one oscillator cycle). Clipped to the months available after Window Start.
-    value: 39
+    value: 50
   - name: Loopmode
     style: Menu
     label: Loop Mode
@@ -191,6 +190,7 @@ custom_pars:
     - Forward (wrap)
     - Ping-Pong (mirror)
     help: Forward plays the window start to end and wraps; Ping-Pong plays it forward then backward, which closes the loop without a jump and keeps only odd-symmetric content.
+    value: pingpong
   - name: Detrend
     style: Menu
     default: linear
@@ -214,6 +214,7 @@ custom_pars:
     - Linear
     - Cubic (smooth)
     help: How the monthly values are resampled to the 2048-sample table. Step keeps the monthly staircase (bright, buzzy), Cubic is the smoothest.
+    value: linear
   - name: Scan
     style: Toggle
     label: Scan History
@@ -227,7 +228,7 @@ custom_pars:
     clampMin: true
     normMax: 24.0
     help: Months per second the window moves while Scan History is on.
-    value: 12.6000003815
+    value: 14.9
   Shape:
   - name: Shapemode
     style: Menu
@@ -254,7 +255,7 @@ custom_pars:
     clampMax: true
     normMax: 36.0
     help: Gain into the shaper in dB; more drive means more and stronger upper harmonics.
-    value: 12.8999996185
+    value: 11.8
   - name: Bias
     style: Float
     label: Asymmetry
@@ -263,14 +264,14 @@ custom_pars:
     clampMax: true
     normMin: -1.0
     help: Offset added before the shaper. Non-zero values clip one side harder and add even harmonics (DC is removed afterwards).
-    value: 0.4199999869
+    value: 0.39
   - name: Mix
     style: Float
     default: 1
     clampMin: true
     clampMax: true
     help: Dry/wet between the raw cycle (0) and the shaped cycle (1).
-    value: 0.4309999943
+    value: 0.409
   - name: Bandlimit
     style: Toggle
     label: Band-limit to Pitch
@@ -288,7 +289,7 @@ custom_pars:
     normMin: 24.0
     normMax: 84.0
     help: Oscillator pitch as a MIDI note number (45 = A2 = 110 Hz, 57 = A3, 69 = A4 = 440 Hz). The wavetable shape is kept; only the playback rate changes.
-    value: 34.5
+    value: 26.6
   - name: Fine
     style: Float
     label: Fine (cents)
@@ -308,7 +309,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: 'Portamento time: seconds the frequency takes to slide to a new note.'
-    value: 0.4160000086
+    value: 0.416
   Gate:
   - name: Gate
     style: Momentary
@@ -337,7 +338,7 @@ custom_pars:
     normMin: 0.1
     normMax: 8.0
     help: Notes per second of the Auto Gate (1.0 = 60 BPM, 2.0 = 120 BPM).
-    value: 0.6800000072
+    value: 1.08
   - name: Gatelength
     style: Float
     label: Gate Length
@@ -347,7 +348,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Fraction of each Auto Gate period the gate stays open.
-    value: 0.27700001
+    value: 0.277
   Amp Env:
   - name: Attack
     style: Float
@@ -425,7 +426,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Boost around the cutoff frequency (0 = none).
-    value: 0.1599999964
+    value: 0.16
   - name: Rolloff
     style: Menu
     label: Roll-off
@@ -450,7 +451,7 @@ custom_pars:
     normMin: -6.0
     normMax: 6.0
     help: Octaves the filter envelope moves the cutoff at full level (cutoff x 2^(amount x env)). Negative values sweep downward.
-    value: 0.0399999991
+    value: 0.04
   - name: Fattack
     style: Float
     label: Env Attack (s)
@@ -480,7 +481,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: 'Filter envelope: level held while the gate stays open (0-1).'
-    value: 0.3170000017
+    value: 0.317
   - name: Frelease
     style: Float
     label: Env Release (s)
@@ -504,7 +505,7 @@ custom_pars:
     clampMin: true
     clampMax: true
     help: Output gain (linear, 0-1) before the safety limiter.
-    value: 0.5469999909
+    value: 0.547
   Visual:
   - name: Orbit
     style: Float
@@ -539,6 +540,8 @@ sequences:
   - object: op('./SeriesSynthExt').module.SeriesSynthExt(me)
     name: SeriesSynth
     promote: true
+flags:
+- -allowCooking
 color: [0.3, 0.5, 0.9]
 tags:
 - tdxn
@@ -1262,7 +1265,6 @@ operators:
         valuex: =float(op('axes')['tmax', 1])
         valuey: =float(op('axes')['t0', 1])
         valuez: =float(op('axes')['n', 1])
-        valuew: 0
       - name: uWin
         valuex: =parent.Synth.op('engine/script_window')['start']
         valuey: =parent.Synth.op('engine/script_window')['length']
@@ -1287,7 +1289,6 @@ operators:
         valuex: =(absTime.frame % 216000) / 60.0
         valuey: =parent.Synth.par.Glow
         valuez: =parent.Synth.par.Volume
-        valuew: 0
       array:
       - name: uRects
         type: vec4
@@ -2092,7 +2093,7 @@ operators:
     parameters:
       filter: =parent.Synth.par.Filtertype
       units: frequency
-      cutofflog: 2.6989700794
+      cutofflog: 2.69897
       cutofffrequency: =parent.Synth.par.Cutoff
       resonance: =parent.Synth.par.Resonance
       rolloff: =float(parent.Synth.par.Rolloff.eval())
